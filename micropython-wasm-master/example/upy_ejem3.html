@@ -1,0 +1,33 @@
+import createMicroPythonModule from './micropython.mjs';
+
+async function runMicroPython() {
+  const outputEl = document.getElementById('output');
+
+  // Create the MicroPython module
+  const mpModule = await createMicroPythonModule();
+
+  // Wait for it to fully initialize
+  await mpModule.ready; // <-- VERY IMPORTANT
+
+  mpModule._mp_js_init();
+  mpModule._mp_js_repl_init();
+
+  let output = '';
+  mpModule.print = function (text) {
+    output += text + '\n';
+  };
+
+  const code = `
+print("Hello from MicroPython!")
+for i in range(5):
+    print("Number:", i)
+`;
+
+  for (const c of code) {
+    mpModule._mp_js_repl_process_char(c.charCodeAt(0));
+  }
+
+  outputEl.textContent = output;
+}
+
+runMicroPython();

@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>MicroPython WebAssembly Test</title>
+</head>
+<body>
+  <h1>MicroPython Output</h1>
+  <pre id="output"></pre>
+
+  <script type="module">
+    import createMicroPythonModule from './micropython.mjs';
+
+    async function runMicroPython() {
+      const outputEl = document.getElementById('output');
+
+      // Create and initialize the MicroPython module
+      const mpModule = await createMicroPythonModule();
+      await mpModule.ready;
+
+      // Initialize MicroPython
+      mpModule._mp_js_init();
+
+      let output = '';
+
+      // Hook stdout
+      mpModule.print = function (text) {
+        output += text + '\n';
+      };
+
+      // Your Python code
+      const code = `
+print("Hello from MicroPython!")
+for i in range(5):
+    print("Number:", i)
+`;
+
+      // Allocate memory for the code string
+      const encoder = new TextEncoder();
+      const codeBuffer = encoder.encode(code + "\0"); // null-terminated
+
+      // Allocate memory in WASM
+      const ptr = mpModule._malloc(codeBuffer.length);
+      mpModule.HEAPU8.set(codeBuffer, ptr);
+
+      // Execute code
+      mpModule._mp_js_do_exec(ptr);
+
+      // Free memory
+      mpModule._free(ptr);
+
+      // Display output
+      outputEl.textContent = output;
+    }
+
+    runMicroPython();
+  </script>
+</body>
+</html>

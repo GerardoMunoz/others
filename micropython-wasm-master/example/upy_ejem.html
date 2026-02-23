@@ -1,0 +1,12 @@
+<!doctype html>
+<html>
+  <head>
+    <script src="build-standard/micropython.mjs" type="module"></script>
+  </head>
+  <body>
+    <script type="module">
+      const mp = await loadMicroPython();
+      mp.runPython("print('hello world')");
+    </script>
+  </body>
+</html>
